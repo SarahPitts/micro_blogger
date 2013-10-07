@@ -16,6 +16,29 @@ class MicroBlogger
   	end
   end
 
+  def dm(target, message)
+    @client.direct_message_create(target, message)
+    puts "d #{target} Trying to send this direct message:"
+    puts message
+  end
+
+  def everyones_last_tweet
+    friends = @client.friends
+    friends.sort_by! { |friend| friend.name.downcase }
+    friends.each do |friend|
+      last_tweet = friend.status.text
+      timestamp  = friend.status.created_at
+      # print each friend's screen_name
+      print "#{friend.name} just said... "
+      # print each friend's last message
+      print last_tweet
+      print " published #{timestamp.strftime('%A, %b %d')}"
+      puts ""  # Just print a blank line to separate people
+    end
+  end
+
+
+
   def run
     command = ""
     while command != "q"
@@ -25,8 +48,10 @@ class MicroBlogger
       parts = input.split
       command = parts[0]
       case command
-         when 'q' then puts "Goodbye!"
-         when 't' then tweet(parts[1..-1].join(" "))
+        when 'q' then puts "Goodbye!"
+        when 't' then tweet(parts[1..-1].join(" "))
+        when 'dm' then dm(parts[1], parts[2..-1].join(" "))
+        when 'elt' then everyones_last_tweet
          else
            puts "Sorry, I don't know how to (#{command})"
       end

@@ -1,5 +1,6 @@
 require 'jumpstart_auth'
 require 'bitly'
+require 'klout'
 
 class MicroBlogger
   attr_reader :client
@@ -52,6 +53,20 @@ class MicroBlogger
     Bitly.new('hungryacademy', 'R_430e9f62250186d2612cca76eee2dbc6')
   end
 
+  def klout_score
+    friends = @client.friends.collect { |f| f.screen_name }
+    friends.each do |friend|
+      begin
+        identity = Klout::Identity.find_by_screen_name(friend)
+        user     = Klout::User.new(identity.id)
+        score    = user.score.score.to_s
+        print "#{friend}'s score: #{score[0..2]}"
+      rescue
+        print "Sorry, #{friend} doesn't have a Klout account"
+      end
+      puts "" # Print a blank line to separate each friend
+    end
+  end
 
 
   def run
@@ -69,6 +84,7 @@ class MicroBlogger
         when 't' then tweet(parts[1..-1].join(" "))
         when 'dm' then dm(parts[1], parts[2..-1].join(" "))
         when 'elt' then everyones_last_tweet
+        when "klout" then klout_score
          else
            puts "Sorry, I don't know how to (#{command})"
       end
